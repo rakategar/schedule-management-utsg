@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ArrowDown, ArrowUp, Bell, CheckCircle2, History, Mail, MoreHorizontal, Pause, Pencil, Play, Plus, Repeat, Search, Send, Trash2,
 } from 'lucide-react';
@@ -190,28 +191,61 @@ function Channels({ r }: { r: Reminder }) {
 
 function RowMenu({ r, onEdit, onHistory, onAct }: { r: Reminder; onEdit: () => void; onHistory: () => void; onAct: (k: 'delete' | 'complete' | 'pause' | 'resume') => void }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Menu dirender di body (portal) supaya tidak terpotong overflow tabel; posisinya mengikuti tombol
+  useLayoutEffect(() => {
+    if (!open) { setPos(null); return; }
+    const place = () => {
+      const b = btnRef.current?.getBoundingClientRect();
+      const m = menuRef.current;
+      if (!b || !m) return;
+      const gap = 6;
+      const h = m.offsetHeight;
+      const w = m.offsetWidth;
+      const below = window.innerHeight - b.bottom - gap;
+      const top = below >= h || b.top < h + gap ? Math.min(b.bottom + gap, window.innerHeight - h - 8) : b.top - h - gap;
+      const left = Math.min(Math.max(8, b.right - w), window.innerWidth - w - 8);
+      setPos({ top: Math.max(8, top), left });
+    };
+    place();
+    const close = () => setOpen(false);
+    window.addEventListener('resize', close);
+    window.addEventListener('scroll', close, true);
+    return () => { window.removeEventListener('resize', close); window.removeEventListener('scroll', close, true); };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
-    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const h = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (!btnRef.current?.contains(t) && !menuRef.current?.contains(t)) setOpen(false);
+    };
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); btnRef.current?.focus(); } };
     document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
+    document.addEventListener('keydown', k);
+    return () => { document.removeEventListener('mousedown', h); document.removeEventListener('keydown', k); };
   }, [open]);
+
   const item = (fn: () => void) => () => { setOpen(false); fn(); };
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <button className="btn btn-ghost btn-icon btn-sm" onClick={() => setOpen(o => !o)} aria-label={`Aksi untuk ${r.name}`} aria-haspopup="menu" aria-expanded={open}><MoreHorizontal /></button>
-      {open && (
-        <div className="menu" role="menu">
+    <>
+      <button ref={btnRef} className="btn btn-ghost btn-icon btn-sm" onClick={() => setOpen(o => !o)} aria-label={`Aksi untuk ${r.name}`} aria-haspopup="menu" aria-expanded={open}><MoreHorizontal /></button>
+      {open && createPortal(
+        <div ref={menuRef} className="menu menu-floating" role="menu"
+          style={{ top: pos?.top ?? 0, left: pos?.left ?? 0, visibility: pos ? 'visible' : 'hidden' }}>
           <button role="menuitem" onClick={item(onEdit)}><Pencil />Ubah</button>
           <button role="menuitem" onClick={item(onHistory)}><History />Riwayat perubahan</button>
           {r.status !== 'COMPLETED' && <button role="menuitem" onClick={item(() => onAct('complete'))}><CheckCircle2 />Tandai selesai</button>}
           {r.status === 'ACTIVE' && <button role="menuitem" onClick={item(() => onAct('pause'))}><Pause />Jeda pengingat</button>}
           {r.status !== 'ACTIVE' && <button role="menuitem" onClick={item(() => onAct('resume'))}><Play />Aktifkan lagi</button>}
           <button role="menuitem" className="danger" onClick={item(() => onAct('delete'))}><Trash2 />Hapus</button>
-        </div>
+        </div>,
+        document.body,
       )}
-    </div>
+    </>
   );
 }
 
