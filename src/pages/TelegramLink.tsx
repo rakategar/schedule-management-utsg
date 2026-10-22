@@ -81,7 +81,7 @@ export function TelegramCard() {
   const toast = useToast();
   const [unlinking, setUnlinking] = useState(false);
   const tg = user.telegram;
-  const botUrl = telegramBot ? `https://t.me/${telegramBot}` : '';
+  const botUrl = `https://t.me/${telegramBot}`;
 
   return (
     <div className="panel panel-pad stack">
@@ -97,12 +97,16 @@ export function TelegramCard() {
       ) : (
         <>
           <p className="muted" style={{ margin: 0 }}>Belum terhubung. Hubungkan supaya bot reminder mengenali akunmu.</p>
-          <ol style={{ margin: 0, paddingLeft: 20, display: 'grid', gap: 4, fontSize: 13 }}>
-            <li>Buka bot {telegramBot ? <b>@{telegramBot}</b> : 'reminder'} di Telegram, lalu kirim <code>/start</code>.</li>
+          <ol style={{ margin: 0, paddingLeft: 20, display: 'grid', gap: 6, fontSize: 13 }}>
+            <li>Buka bot <a href={botUrl} target="_blank" rel="noreferrer"><b>@{telegramBot}</b></a> di Telegram, lalu kirim <code>/start</code>.</li>
             <li>Kirim <code>/login</code>. Bot membalas dengan link yang berlaku 10 menit.</li>
             <li>Buka link itu, lalu tekan <b>Hubungkan Telegram</b>.</li>
           </ol>
-          {botUrl && <div><a className="btn btn-primary" href={botUrl} target="_blank" rel="noreferrer"><ExternalLink />Buka @{telegramBot}</a></div>}
+          <div className="row wrap">
+            <a className="btn btn-primary" href={`${botUrl}?start=login`} target="_blank" rel="noreferrer"><Send />Hubungkan lewat @{telegramBot}</a>
+            <a className="btn" href={botUrl} target="_blank" rel="noreferrer"><ExternalLink />Buka bot</a>
+          </div>
+          <div className="help">Tombol <b>Hubungkan</b> membuka bot dan langsung meminta link login, jadi kamu cukup menekan <b>Start</b> di Telegram.</div>
         </>
       )}
       {unlinking && (
@@ -111,6 +115,24 @@ export function TelegramCard() {
           onConfirm={async () => { const r = await call<{ user: User }>('telegram.unlink'); setUser(r.user); toast('Telegram diputus'); }}
           onClose={() => setUnlinking(false)} />
       )}
+    </div>
+  );
+}
+
+/** Ajakan menghubungkan Telegram di Beranda, tampil selama akun belum terhubung */
+export function TelegramPrompt() {
+  const { user, telegramBot, go } = useSession();
+  if (user.telegram) return null;
+  const botUrl = `https://t.me/${telegramBot}`;
+  return (
+    <div className="panel panel-pad row wrap" style={{ marginBottom: 16, gap: 12, boxShadow: 'inset 3px 0 0 var(--brand)' }}>
+      <Send size={20} style={{ color: 'var(--brand)' }} />
+      <div className="grow" style={{ minWidth: 220 }}>
+        <h2>Hubungkan akun ke bot Telegram</h2>
+        <div className="muted small">Buka <a href={botUrl} target="_blank" rel="noreferrer"><b>@{telegramBot}</b></a>, kirim <code>/start</code> lalu <code>/login</code>, dan buka link yang dikirim bot.</div>
+      </div>
+      <a className="btn btn-primary btn-sm" href={`${botUrl}?start=login`} target="_blank" rel="noreferrer"><Send />Hubungkan</a>
+      <button className="btn btn-sm btn-ghost" onClick={() => go('profil')}>Detail</button>
     </div>
   );
 }

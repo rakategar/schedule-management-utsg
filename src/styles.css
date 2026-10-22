@@ -317,3 +317,11 @@ table.data .r { text-align: right; }
   .toasts { left: 16px; right: 16px; bottom: 76px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* Editor & pratinjau email broadcast */
+.mail-edit { display: grid; gap: 12px; }
+.mail-preview { background: var(--panel-sunken); border-radius: var(--radius-input); padding: 14px; }
+.mail-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 20px; max-width: 560px; display: grid; gap: 14px; font-size: 14px; line-height: 1.7; }
+.mail-card h3 { margin: 0; color: var(--brand); font-size: 18px; }
+.mail-card .tok-val { padding: 2px 6px; background: var(--panel-sunken); border-radius: 4px; font: 600 13px var(--font-num); }
+.mail-note { background: var(--watch-bg); color: var(--watch-ink); padding: 10px 12px; border-radius: 4px; font-size: 13px; }

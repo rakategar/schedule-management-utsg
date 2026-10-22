@@ -6,6 +6,7 @@ import type { Reminder } from '../lib/types';
 import { useSession } from '../session';
 import { Empty, ErrorBox, StatusBadge, useLoad } from '../components/ui';
 import { DivisionSelect, ReminderForm } from './Reminders';
+import { TelegramPrompt } from './TelegramLink';
 
 export function HomePage() {
   const { isSuper, go, user } = useSession();
@@ -37,6 +38,7 @@ export function HomePage() {
         <button className="btn btn-primary" onClick={() => setCreating(true)}><Plus />Reminder baru</button>
       </div>
       {error && <ErrorBox>{error}</ErrorBox>}
+      <TelegramPrompt />
 
       <div className="panel panel-pad" style={{ marginBottom: 16, boxShadow: attention.length ? 'inset 3px 0 0 var(--critical)' : 'inset 3px 0 0 var(--fresh)' }}>
         {loading ? <div className="skel" style={{ height: 56 }} /> : attention.length ? (

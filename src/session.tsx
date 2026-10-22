@@ -13,6 +13,9 @@ export interface SessionValue {
   telegramBot: string;
 }
 
+/** Bot Telegram resmi; dipakai kalau NR_Settings belum diisi */
+export const DEFAULT_TELEGRAM_BOT = 'reminder_utsg_bot';
+
 export const SessionCtx = createContext<SessionValue | null>(null);
 export const useSession = () => {
   const v = useContext(SessionCtx);

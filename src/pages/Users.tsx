@@ -113,7 +113,7 @@ export function UsersPage() {
 function UserForm({ initial, onClose, onSaved }: { initial?: User; onClose: () => void; onSaved: (r?: { username: string; password: string }) => void }) {
   const { divisions } = useSession();
   const [f, setF] = useState({
-    username: initial?.username ?? '', fullName: initial?.fullName ?? '', email: initial?.email ?? '',
+    username: initial?.username ?? '', fullName: initial?.fullName ?? '', email: initial?.email ?? '', reminderEmails: (initial?.reminderEmails || []).join(', '),
     role: (initial?.role ?? 'USER') as Role, divisionId: String(initial?.divisionId ?? ''), isActive: initial?.isActive ?? true,
     autoPassword: true, password: '', mustReset: true,
   });
@@ -122,7 +122,7 @@ function UserForm({ initial, onClose, onSaved }: { initial?: User; onClose: () =
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF(x => ({ ...x, [k]: v }));
   const save = async () => {
     setBusy(true); setErr('');
-    const base = { username: f.username, fullName: f.fullName, email: f.email, role: f.role, divisionId: f.role === 'USER' ? Number(f.divisionId) || null : null, isActive: f.isActive };
+    const base = { username: f.username, fullName: f.fullName, email: f.email, reminderEmails: f.reminderEmails, role: f.role, divisionId: f.role === 'USER' ? Number(f.divisionId) || null : null, isActive: f.isActive };
     try {
       if (initial) { await call('users.update', { ...base, id: initial.id }); onSaved(); }
       else {
@@ -141,6 +141,8 @@ function UserForm({ initial, onClose, onSaved }: { initial?: User; onClose: () =
         <div className="field"><label htmlFor="un">Nama lengkap</label><input id="un" className="input" value={f.fullName} onChange={e => set('fullName', e.target.value)} /></div>
         <div className="field full"><label htmlFor="ue">Email</label><input id="ue" type="email" className="input" value={f.email} onChange={e => set('email', e.target.value)} placeholder="nama@sig.id" />
           <div className="help">Dipakai untuk mengirim akses login lewat Broadcast email.</div></div>
+        <div className="field full"><label htmlFor="urm">Email penerima reminder</label><input id="urm" className="input" value={f.reminderEmails} onChange={e => set('reminderEmails', e.target.value)} placeholder="nama@sig.id, nama2@gmail.com" />
+          <div className="help">Pisahkan dengan koma. Ikut menerima semua reminder email divisinya. Pengguna juga bisa mengaturnya sendiri di Profil.</div></div>
         <div className="field"><label className="req" htmlFor="ur">Peran</label>
           <select id="ur" className="select" value={f.role} onChange={e => set('role', e.target.value as Role)}>
             <option value="USER">User (kelola divisinya sendiri)</option>

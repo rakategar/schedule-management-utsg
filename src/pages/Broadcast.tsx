@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
-import { CheckCircle2, Mail, Send, XCircle } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { CheckCircle2, Mail, RotateCcw, Save, Send, XCircle } from 'lucide-react';
 import { call } from '../lib/api';
-import type { User } from '../lib/types';
+import type { Setting, User } from '../lib/types';
 import { Badge, Confirm, Empty, ErrorBox, SkeletonRows, Switch, useLoad, useToast } from '../components/ui';
 import { DivisionSelect } from './Reminders';
 import { UserStatus } from './Users';
@@ -18,6 +18,7 @@ export function BroadcastPage() {
   const [mustReset, setMustReset] = useState(true);
   const [confirm, setConfirm] = useState(false);
   const [result, setResult] = useState<{ results: Result[]; skipped: Skipped[] } | null>(null);
+  const tpl = useTemplate();
 
   const users = useMemo(() => (data?.users || []).filter(u => !div || String(u.divisionId) === div), [data, div]);
   const eligible = users.filter(u => u.email && u.isActive);
@@ -30,6 +31,7 @@ export function BroadcastPage() {
     for (const u of chosen) if (manual[u.id]) passwords[u.id] = manual[u.id];
     const r = await call<{ results: Result[]; skipped: Skipped[] }>('broadcast.send', {
       userIds: chosen.map(u => u.id), mustReset, passwords, dashboardUrl: window.location.origin,
+      template: { subject: tpl.subject, body: tpl.body },
     });
     setResult(r);
     const ok = r.results.filter(x => x.sent).length;
@@ -102,13 +104,8 @@ export function BroadcastPage() {
           <h2>Pengaturan kiriman</h2>
           <div className="row"><Switch checked={mustReset} onChange={setMustReset} label="Wajib ganti password" /><span className="grow">Wajib ganti password saat login pertama</span></div>
           <div className="help">Kolom password yang dikosongkan akan dibuat otomatis (10 karakter acak). Isi kolom itu kalau ingin menentukan password sendiri.</div>
-          <div>
-            <div className="label" style={{ marginBottom: 6 }}>Pratinjau email</div>
-            <div className="code" style={{ fontFamily: 'var(--font-ui)', fontSize: 13 }}>
-              <b>Akses Dashboard Reminder UTSG</b>{'\n'}Halo [nama], berikut akses login Anda untuk divisi [divisi].{'\n'}Alamat: {window.location.origin}{'\n'}Username: [username]{'\n'}Password: [password baru]{'\n'}{mustReset ? 'Anda akan diminta mengganti password saat login pertama.' : ''}
-            </div>
-          </div>
-          <div><button className="btn btn-primary" disabled={!sel.size} onClick={() => setConfirm(true)}><Send />Kirim ke {sel.size} pengguna</button></div>
+          <EmailEditor tpl={tpl} mustReset={mustReset} sample={chosen[0] || null} />
+          <div><button className="btn btn-primary" disabled={!sel.size || !!tpl.problem} onClick={() => setConfirm(true)}><Send />Kirim ke {sel.size} pengguna</button></div>
         </div>
       </div>
 
@@ -118,5 +115,96 @@ export function BroadcastPage() {
           onConfirm={send} onClose={() => setConfirm(false)} />
       )}
     </>
+  );
+}
+
+// ===== Template email broadcast =====
+const DEFAULT_SUBJECT = 'Akses Dashboard Reminder UTSG';
+const DEFAULT_BODY = 'Halo {nama},\n\nberikut akses login Dashboard Reminder UTSG untuk divisi {divisi}.\n\nAlamat: {link}\nUsername: {username}\nPassword: {password}\n\nJangan bagikan password ini kepada siapa pun.';
+const TOKENS: [string, string][] = [['{nama}', 'Nama'], ['{username}', 'Username'], ['{password}', 'Password'], ['{divisi}', 'Divisi'], ['{link}', 'Alamat dashboard']];
+
+type Template = ReturnType<typeof useTemplate>;
+
+function useTemplate() {
+  const toast = useToast();
+  const [saved, setSaved] = useState({ subject: DEFAULT_SUBJECT, body: DEFAULT_BODY });
+  const [subject, setSubject] = useState(DEFAULT_SUBJECT);
+  const [body, setBody] = useState(DEFAULT_BODY);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    call<{ settings: Setting[] }>('settings.get').then(r => {
+      const get = (k: string) => r.settings.find(x => x.key === k)?.value || '';
+      const t = { subject: get('BROADCAST_SUBJECT') || DEFAULT_SUBJECT, body: get('BROADCAST_BODY') || DEFAULT_BODY };
+      setSaved(t); setSubject(t.subject); setBody(t.body);
+    }).catch(() => { /* pakai template bawaan */ });
+  }, []);
+  const missing = ['{username}', '{password}'].filter(k => !body.includes(k));
+  const problem = !subject.trim() ? 'Subjek email wajib diisi.'
+    : missing.length ? `Isi email wajib memuat ${missing.join(' dan ')} supaya penerima tahu akses loginnya.` : '';
+  const save = async () => {
+    setSaving(true);
+    try {
+      if (subject !== saved.subject) await call('settings.update', { key: 'BROADCAST_SUBJECT', value: subject });
+      if (body !== saved.body) await call('settings.update', { key: 'BROADCAST_BODY', value: body });
+      setSaved({ subject, body }); toast('Template email disimpan');
+    } catch (e) { toast((e as Error).message, true); }
+    setSaving(false);
+  };
+  const reset = () => { setSubject(DEFAULT_SUBJECT); setBody(DEFAULT_BODY); };
+  return { subject, setSubject, body, setBody, problem, save, saving, reset, dirty: subject !== saved.subject || body !== saved.body };
+}
+
+/** Ganti placeholder dengan nilai contoh untuk pratinjau */
+function renderTokens(text: string, vals: Record<string, string>, strong: boolean): ReactNode[] {
+  return text.split(/(\{(?:nama|username|password|divisi|link)\})/g).map((part, i) => {
+    const key = part.slice(1, -1);
+    if (!(part.startsWith('{') && key in vals)) return part;
+    if (!strong) return vals[key];
+    if (key === 'link') return <a key={i} href={vals.link} target="_blank" rel="noreferrer">{vals.link}</a>;
+    if (key === 'username' || key === 'password') return <code key={i} className="tok-val">{vals[key]}</code>;
+    return <b key={i}>{vals[key]}</b>;
+  });
+}
+
+function EmailEditor({ tpl, mustReset, sample }: { tpl: Template; mustReset: boolean; sample: User | null }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const vals = {
+    nama: sample?.fullName || sample?.username || 'Budi Santoso', username: sample?.username || 'budi.ict',
+    password: 'Xy7#kP2mQa', divisi: sample?.divisionName || 'ICT', link: window.location.origin,
+  };
+  const insert = (tok: string) => {
+    const el = ref.current;
+    if (!el) return tpl.setBody(tpl.body + tok);
+    const { selectionStart: a, selectionEnd: b } = el;
+    tpl.setBody(tpl.body.slice(0, a) + tok + tpl.body.slice(b));
+    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(a + tok.length, a + tok.length); });
+  };
+  return (
+    <div className="stack" style={{ gap: 12 }}>
+      <div className="row wrap"><div className="label grow">Pratinjau email</div>
+        <button type="button" className="btn btn-sm btn-ghost" onClick={tpl.reset}><RotateCcw />Kembalikan bawaan</button>
+        <button type="button" className="btn btn-sm" onClick={tpl.save} disabled={!tpl.dirty || !!tpl.problem || tpl.saving}><Save />{tpl.saving ? 'Menyimpan…' : 'Simpan template'}</button>
+      </div>
+      <div className="mail-edit">
+        <div className="field"><label htmlFor="bs">Subjek</label><input id="bs" className="input" value={tpl.subject} onChange={e => tpl.setSubject(e.target.value)} maxLength={200} /></div>
+        <div className="field"><label htmlFor="bb">Isi email</label>
+          <textarea id="bb" ref={ref} className="textarea" style={{ minHeight: 200, fontFamily: 'var(--font-ui)' }} value={tpl.body} onChange={e => tpl.setBody(e.target.value)} maxLength={5000} />
+          <div className="row wrap" style={{ gap: 6 }}>
+            <span className="caption">Sisipkan:</span>
+            {TOKENS.map(([t, label]) => <button key={t} type="button" className="chip" style={{ height: 26 }} onClick={() => insert(t)} title={`Sisipkan ${t}`}>{label}</button>)}
+          </div>
+        </div>
+        {tpl.problem && <ErrorBox>{tpl.problem}</ErrorBox>}
+      </div>
+      <div className="mail-preview" aria-label="Tampilan email yang diterima">
+        <div className="caption" style={{ marginBottom: 8 }}>Tampilan untuk {sample ? <b>{sample.username}</b> : 'contoh penerima'} · password di bawah hanya contoh</div>
+        <div className="mail-card">
+          <h3>{renderTokens(tpl.subject, { ...vals, password: '***' }, false)}</h3>
+          <div style={{ whiteSpace: 'pre-wrap' }}>{renderTokens(tpl.body, vals, true)}</div>
+          {mustReset && <div className="mail-note">Anda akan diminta mengganti password saat login pertama.</div>}
+          <div className="caption">Email dikirim otomatis oleh sistem Reminder UTSG.</div>
+        </div>
+      </div>
+    </div>
   );
 }

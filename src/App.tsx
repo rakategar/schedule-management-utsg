@@ -5,7 +5,7 @@ import {
 import { auth, call } from './lib/api';
 import { fmtLongToday, initials } from './lib/format';
 import type { DivisionRef, Session, User } from './lib/types';
-import { SessionCtx, type SessionValue } from './session';
+import { DEFAULT_TELEGRAM_BOT, SessionCtx, type SessionValue } from './session';
 import { ToastProvider } from './components/ui';
 import { ForceResetPage, LoginPage } from './pages/Login';
 import { HomePage } from './pages/Home';
@@ -51,7 +51,7 @@ function useTheme() {
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [divisions, setDivisions] = useState<DivisionRef[]>([]);
-  const [telegramBot, setTelegramBot] = useState('');
+  const [telegramBot, setTelegramBot] = useState(DEFAULT_TELEGRAM_BOT);
   const [booting, setBooting] = useState(!!auth.token);
   const [route, setRoute] = useState<Route>(parseHash);
 
@@ -67,12 +67,12 @@ export default function App() {
   useEffect(() => {
     if (!auth.token) return;
     call<Omit<Session, 'token'>>('auth.me')
-      .then(r => { setUser(r.user); setDivisions(r.divisions); setTelegramBot(r.telegramBot || ''); })
+      .then(r => { setUser(r.user); setDivisions(r.divisions); setTelegramBot(r.telegramBot || DEFAULT_TELEGRAM_BOT); })
       .catch(() => auth.setToken(null))
       .finally(() => setBooting(false));
   }, []);
 
-  const onLogin = (s: Session) => { setUser(s.user); setDivisions(s.divisions); setTelegramBot(s.telegramBot || ''); if (!window.location.hash) window.location.hash = '#/beranda'; };
+  const onLogin = (s: Session) => { setUser(s.user); setDivisions(s.divisions); setTelegramBot(s.telegramBot || DEFAULT_TELEGRAM_BOT); if (!window.location.hash) window.location.hash = '#/beranda'; };
   const logout = useCallback(async () => {
     try { await call('auth.logout'); } catch { /* sesi mungkin sudah berakhir */ }
     logoutLocal();
@@ -80,7 +80,7 @@ export default function App() {
 
   const refresh = useCallback(async () => {
     const r = await call<Omit<Session, 'token'>>('auth.me');
-    setUser(r.user); setDivisions(r.divisions); setTelegramBot(r.telegramBot || '');
+    setUser(r.user); setDivisions(r.divisions); setTelegramBot(r.telegramBot || DEFAULT_TELEGRAM_BOT);
   }, []);
 
   if (booting) return <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}><Loader2 className="spin" /></div>;

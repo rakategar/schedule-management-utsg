@@ -63,6 +63,13 @@ export const PRESETS: Record<Exclude<Preset, 'CUSTOM'>, { label: string; days: n
   PANJANG: { label: 'Jangka panjang', days: [90, 60, 30, 14, 7, 1], hint: 'H-90, H-60, H-30, H-14, H-7, H-1' },
 };
 
+/** Hari preset yang tanggalnya belum lewat. Kalau semuanya sudah lewat, sisakan hari H. */
+export const upcomingPresetDays = (p: Exclude<Preset, 'CUSTOM'>, dueDate: string) => {
+  const today = todayJkt();
+  const days = PRESETS[p].days.filter(d => addDays(dueDate, -d) >= today);
+  return days.length ? days : [0];
+};
+
 export const presetLabel = (p: Preset) => (p === 'CUSTOM' ? 'Kustom' : PRESETS[p].label);
 
 export const summarizeDays = (days: number[]) => {

@@ -4,7 +4,7 @@ import {
   ArrowDown, ArrowUp, Bell, CheckCircle2, History, Mail, MoreHorizontal, Pause, Pencil, Play, Plus, Repeat, Search, Send, Trash2,
 } from 'lucide-react';
 import { call } from '../lib/api';
-import { PRESETS, addDays, daysBetween, fmtDate, fmtDateTime, presetLabel, summarizeDays, todayJkt } from '../lib/format';
+import { PRESETS, addDays, upcomingPresetDays, daysBetween, fmtDate, fmtDateTime, presetLabel, summarizeDays, todayJkt } from '../lib/format';
 import type { Preset, Recurrence, Reminder } from '../lib/types';
 import { useSession } from '../session';
 import { Confirm, Drawer, Empty, ErrorBox, Modal, SkeletonRows, StatusBadge, useLoad, useToast } from '../components/ui';
@@ -257,7 +257,7 @@ export function ReminderForm({ initial, defaultDivision, onClose, onSaved }: { i
     divisionId: String(initial?.divisionId ?? (defaultDivision || (isSuper ? '' : user.divisionId ?? ''))),
     name: initial?.name ?? '', category: initial?.category ?? '', provider: initial?.provider ?? '', description: initial?.description ?? '',
     dueDate: initial?.dueDate ?? addDays(todayJkt(), 30),
-    preset: (initial?.preset ?? 'STANDAR') as Preset, reminderDays: initial?.reminderDays ?? PRESETS.STANDAR.days,
+    preset: (initial?.preset ?? 'STANDAR') as Preset, reminderDays: initial?.reminderDays ?? upcomingPresetDays('STANDAR', addDays(todayJkt(), 30)),
     channelEmail: initial?.channelEmail ?? true, channelTelegram: initial?.channelTelegram ?? false, recipients: initial?.recipients ?? '',
     isRecurring: initial?.isRecurring ?? false, recurrenceType: (initial?.recurrenceType && initial.recurrenceType !== 'NONE' ? initial.recurrenceType : 'YEARLY') as Recurrence,
     note: '',
@@ -265,13 +265,15 @@ export function ReminderForm({ initial, defaultDivision, onClose, onSaved }: { i
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF(x => ({ ...x, [k]: v }));
+  // Preset ikut menyesuaikan tanggal jatuh tempo: hanya tanggal yang belum lewat yang dipilih
+  const setDue = (dueDate: string) => setF(x => ({ ...x, dueDate, reminderDays: x.preset !== 'CUSTOM' && dueDate ? upcomingPresetDays(x.preset, dueDate) : x.reminderDays }));
   const div = divisions.find(d => String(d.id) === f.divisionId);
   const daysToDue = f.dueDate ? daysBetween(todayJkt(), f.dueDate) : 0;
   const pastDays = f.reminderDays.filter(d => d > daysToDue).length;
 
   const pickPreset = (p: Preset) => {
     if (p === 'CUSTOM') { set('preset', 'CUSTOM'); return; }
-    setF(x => ({ ...x, preset: p, reminderDays: PRESETS[p].days }));
+    setF(x => ({ ...x, preset: p, reminderDays: x.dueDate ? upcomingPresetDays(p, x.dueDate) : PRESETS[p].days }));
   };
 
   const save = async () => {
@@ -313,7 +315,7 @@ export function ReminderForm({ initial, defaultDivision, onClose, onSaved }: { i
         )}
         <div className="field"><label htmlFor="rc">Kategori</label><input id="rc" className="input" value={f.category} onChange={e => set('category', e.target.value)} placeholder="Software / License" /></div>
         <div className="field"><label htmlFor="rp">Vendor / provider</label><input id="rp" className="input" value={f.provider} onChange={e => set('provider', e.target.value)} placeholder="PT …" /></div>
-        <div className="field"><label className="req" htmlFor="rdue">Tanggal jatuh tempo</label><input id="rdue" type="date" className="input num" value={f.dueDate} onChange={e => set('dueDate', e.target.value)} /></div>
+        <div className="field"><label className="req" htmlFor="rdue">Tanggal jatuh tempo</label><input id="rdue" type="date" className="input num" value={f.dueDate} onChange={e => setDue(e.target.value)} /></div>
         <div className="field full"><label htmlFor="rdesc">Keterangan</label><textarea id="rdesc" className="textarea" value={f.description} onChange={e => set('description', e.target.value)} placeholder="Catatan tambahan yang ikut dikirim di email" /></div>
       </div>
 
@@ -325,6 +327,9 @@ export function ReminderForm({ initial, defaultDivision, onClose, onSaved }: { i
           ))}
         </div>
         <div className="help">{f.preset === 'CUSTOM' ? 'Pilih sendiri tanggal-tanggalnya di kalender.' : PRESETS[f.preset].hint + '. Klik tanggal di kalender untuk menyesuaikan.'}</div>
+        {f.preset !== 'CUSTOM' && f.dueDate && f.reminderDays.length < PRESETS[f.preset].days.length && (
+          <div className="help">Jatuh tempo tinggal {Math.max(daysToDue, 0)} hari lagi, jadi hanya {f.reminderDays.length} tanggal yang belum lewat yang dipilih.{f.isRecurring ? ' Setelah ditandai selesai, siklus berikutnya kembali memakai jadwal lengkap.' : ''}</div>
+        )}
         {f.dueDate && <MultiDatePicker dueDate={f.dueDate} days={f.reminderDays} onChange={d => setF(x => ({ ...x, reminderDays: d, preset: 'CUSTOM' }))} />}
         {pastDays > 0 && !f.isRecurring && <div className="alert alert-warn">{pastDays} tanggal pengingat sudah lewat dan tidak akan terkirim. Reminder yang sudah lewat jatuh tempo tetap dikirim setiap hari sampai ditandai selesai.</div>}
       </div>

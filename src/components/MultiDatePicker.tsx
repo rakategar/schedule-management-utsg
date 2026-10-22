@@ -31,6 +31,8 @@ export function MultiDatePicker({ dueDate, days, onChange }: { dueDate: string; 
   const toggle = (iso: string) => {
     const off = daysBetween(iso, dueDate);
     if (off < 0) return;
+    // tanggal lewat hanya boleh dilepas, tidak bisa ditambahkan
+    if (iso < today && !selected.has(off)) return;
     const next = new Set(selected);
     next.has(off) ? next.delete(off) : next.add(off);
     onChange([...next].sort((a, b) => b - a));
@@ -52,9 +54,9 @@ export function MultiDatePicker({ dueDate, days, onChange }: { dueDate: string; 
             const isSel = off >= 0 && selected.has(off);
             const cls = ['cal-day', iso.slice(0, 7) !== ym && 'out', iso < today && 'past', iso === today && 'today', isSel && 'sel', iso === dueDate && 'due'].filter(Boolean).join(' ');
             return (
-              <button key={iso} type="button" className={cls} disabled={off < 0} onClick={() => toggle(iso)}
+              <button key={iso} type="button" className={cls} disabled={off < 0 || (iso < today && !isSel)} onClick={() => toggle(iso)}
                 aria-pressed={isSel} aria-label={`${fmtDate(iso)}${iso === dueDate ? ', jatuh tempo' : ''}${off >= 0 ? `, H-${off}` : ''}`}
-                title={off >= 0 ? (off === 0 ? 'Hari H (jatuh tempo)' : `H-${off}`) : 'Setelah jatuh tempo'}>
+                title={off < 0 ? 'Setelah jatuh tempo' : iso < today ? 'Tanggal sudah lewat' : off === 0 ? 'Hari H (jatuh tempo)' : `H-${off}`}>
                 {Number(iso.slice(8))}
               </button>
             );
