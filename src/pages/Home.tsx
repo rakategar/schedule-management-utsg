@@ -32,7 +32,7 @@ export function HomePage() {
       <div className="page-head">
         <div className="grow">
           <h1>Beranda</h1>
-          <div className="sub">{isSuper ? 'Ringkasan reminder semua divisi.' : `Ringkasan reminder divisi ${user.divisionName}.`}</div>
+          <div className="sub">{isSuper ? 'Ringkasan reminder semua unit kerja.' : `Ringkasan reminder unit kerja ${user.divisionName}.`}</div>
         </div>
         {isSuper && <DivisionSelect value={div} onChange={setDiv} />}
         <button className="btn btn-primary" onClick={() => setCreating(true)}><Plus />Reminder baru</button>
@@ -77,7 +77,7 @@ export function HomePage() {
         ) : (
           <div className="table-wrap">
             <table className="data">
-              <thead><tr><th>Nama</th>{isSuper && <th>Divisi</th>}<th>Jatuh tempo</th><th>Status</th><th>Provider</th></tr></thead>
+              <thead><tr><th>Nama</th>{isSuper && <th>Unit kerja</th>}<th>Jatuh tempo</th><th>Status</th><th>Provider</th></tr></thead>
               <tbody>
                 {(loading ? [] : upcoming).map(r => (
                   <tr key={r.uid} className={`clickable ${r.daysLeft != null && r.daysLeft <= 0 ? 'is-expired' : ''}`} onClick={() => go(`reminder?q=${encodeURIComponent(r.uid)}`)}>

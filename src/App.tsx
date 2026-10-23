@@ -30,7 +30,7 @@ const NAV = [
   { name: 'reminder', label: 'Reminder', icon: Bell },
 ];
 const ADMIN_NAV = [
-  { name: 'divisi', label: 'Divisi', icon: Building2 },
+  { name: 'unit-kerja', label: 'Unit Kerja', icon: Building2 },
   { name: 'pengguna', label: 'Pengguna', icon: UsersIcon },
   { name: 'broadcast', label: 'Broadcast email', icon: Send },
   { name: 'log', label: 'Log aktivitas', icon: FileClock },
@@ -115,7 +115,7 @@ function Shell({ user, divisions, telegramBot, setUser, logout, refresh, route }
   switch (name) {
     case 'reminder': page = <RemindersPage params={route.params} />; break;
     case 'profil': page = <ProfilePage dark={theme.dark} toggleTheme={theme.toggle} />; break;
-    case 'divisi': page = <DivisionsPage />; break;
+    case 'unit-kerja': page = <DivisionsPage />; break;
     case 'pengguna': page = <UsersPage />; break;
     case 'broadcast': page = <BroadcastPage />; break;
     case 'log': page = <ActivityLogPage />; break;
@@ -179,7 +179,7 @@ function AdminHub() {
   const go = (r: string) => { window.location.hash = '#/' + r; };
   return (
     <>
-      <div className="page-head"><div><h1>Administrasi</h1><div className="sub">Kelola divisi, pengguna, dan pantau aktivitas.</div></div></div>
+      <div className="page-head"><div><h1>Administrasi</h1><div className="sub">Kelola unit kerja, pengguna, dan pantau aktivitas.</div></div></div>
       <div className="panel">
         {ADMIN_NAV.map(n => (
           <button key={n.name} className="nav-item" style={{ height: 52, borderBottom: '1px solid var(--line)', borderRadius: 0, color: 'var(--ink)' }} onClick={() => go(n.name)}>

@@ -16,7 +16,7 @@ export interface User {
   passwordChangedAt: string | null;
   createdAt: string | null;
   telegram: TelegramAccount | null;
-  /** Email pribadi yang ikut menerima reminder divisi */
+  /** Email pribadi yang ikut menerima reminder unit kerja */
   reminderEmails: string[];
 }
 

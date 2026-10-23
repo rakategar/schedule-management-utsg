@@ -11,7 +11,7 @@ const ACTIONS: Record<string, { label: string; tone: 'fresh' | 'watch' | 'critic
   PASSWORD_CHANGE: { label: 'Ganti password', tone: 'brand' },
   REMINDER_CREATE: { label: 'Tambah reminder', tone: 'fresh' }, REMINDER_UPDATE: { label: 'Ubah reminder', tone: 'watch' },
   REMINDER_DELETE: { label: 'Hapus reminder', tone: 'expired' }, REMINDER_COMPLETE: { label: 'Reminder selesai', tone: 'brand' }, REMINDER_STATUS: { label: 'Status reminder', tone: 'watch' },
-  DIVISION_CREATE: { label: 'Tambah divisi', tone: 'admin' }, DIVISION_UPDATE: { label: 'Ubah divisi', tone: 'admin' }, DIVISION_DELETE: { label: 'Hapus divisi', tone: 'expired' },
+  DIVISION_CREATE: { label: 'Tambah unit kerja', tone: 'admin' }, DIVISION_UPDATE: { label: 'Ubah unit kerja', tone: 'admin' }, DIVISION_DELETE: { label: 'Hapus unit kerja', tone: 'expired' },
   USER_CREATE: { label: 'Tambah user', tone: 'admin' }, USER_UPDATE: { label: 'Ubah user', tone: 'admin' }, USER_DELETE: { label: 'Hapus user', tone: 'expired' },
   USER_PASSWORD_RESET: { label: 'Reset password user', tone: 'admin' }, USER_UNLOCK: { label: 'Buka kunci user', tone: 'admin' },
   BROADCAST: { label: 'Broadcast email', tone: 'admin' }, SETTING_UPDATE: { label: 'Ubah pengaturan', tone: 'admin' },
@@ -56,7 +56,7 @@ export function ActivityLogPage() {
             <option value="LOGIN">Login (berhasil & gagal)</option>
             <option value="REMINDER">Semua perubahan reminder</option>
             <option value="USER">Manajemen user</option>
-            <option value="DIVISION">Manajemen divisi</option>
+            <option value="DIVISION">Manajemen unit kerja</option>
             <option value="BROADCAST">Broadcast email</option>
             <option value="PASSWORD_CHANGE">Ganti password</option>
             <option value="SETTING">Pengaturan</option>
@@ -65,7 +65,7 @@ export function ActivityLogPage() {
         </div>
         <div className="table-wrap">
           <table className="data">
-            <thead><tr><th>Waktu</th><th>User</th><th>Divisi</th><th>Aksi</th><th>Objek</th><th>Perangkat</th><th>IP</th></tr></thead>
+            <thead><tr><th>Waktu</th><th>User</th><th>Unit kerja</th><th>Aksi</th><th>Objek</th><th>Perangkat</th><th>IP</th></tr></thead>
             {loading ? <SkeletonRows cols={7} /> : (
               <tbody>
                 {rows.map(l => (
@@ -126,7 +126,7 @@ export function NotificationLogPage() {
         </div>
         <div className="table-wrap">
           <table className="data">
-            <thead><tr><th>Waktu</th><th>Reminder</th><th>Divisi</th><th>Channel</th><th>Penerima</th><th className="r">Sisa hari</th><th>Status</th></tr></thead>
+            <thead><tr><th>Waktu</th><th>Reminder</th><th>Unit kerja</th><th>Channel</th><th>Penerima</th><th className="r">Sisa hari</th><th>Status</th></tr></thead>
             {loading ? <SkeletonRows cols={7} /> : (
               <tbody>
                 {rows.map(l => (

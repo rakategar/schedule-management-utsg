@@ -38,7 +38,7 @@ export function ProfilePage({ dark, toggleTheme }: { dark: boolean; toggleTheme:
           <dl className="kv">
             <dt>Username</dt><dd className="num">{user.username}</dd>
             <dt>Peran</dt><dd>{isSuper ? <Badge tone="admin">Superadmin</Badge> : <Badge tone="brand">User</Badge>}</dd>
-            {!isSuper && <><dt>Divisi</dt><dd>{user.divisionName}</dd></>}
+            {!isSuper && <><dt>Unit kerja</dt><dd>{user.divisionName}</dd></>}
             <dt>Login terakhir</dt><dd>{fmtDateTime(user.lastLoginAt)}</dd>
             <dt>Ganti password</dt><dd>{fmtDateTime(user.passwordChangedAt)}</dd>
           </dl>
@@ -124,7 +124,7 @@ function AccountForm() {
             ))}
           </div>
         ) : <div className="help">Belum ada. Email yang ditambahkan di sini ikut menerima reminder.</div>}
-        <div className="help">{isSuper ? 'Sebagai superadmin, email ini menerima reminder dari semua divisi.' : `Email ini menerima semua reminder email divisi ${user.divisionName}, selain penerima yang diatur di tiap reminder.`} Maksimal 10 email.</div>
+        <div className="help">{isSuper ? 'Sebagai superadmin, email ini menerima reminder dari semua unit kerja.' : `Email ini menerima semua reminder email unit kerja ${user.divisionName}, selain penerima yang diatur di tiap reminder.`} Maksimal 10 email.</div>
         {list.length === 0 && user.email && <div><button type="button" className="btn btn-sm btn-ghost" onClick={() => setList([user.email.toLowerCase()])}><Plus />Pakai email akun ({user.email})</button></div>}
       </div>
       {err && <ErrorBox>{err}</ErrorBox>}

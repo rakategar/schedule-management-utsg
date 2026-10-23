@@ -26,7 +26,7 @@ export function SettingsPage() {
 
   return (
     <>
-      <div className="page-head"><div><h1>Pengaturan</h1><div className="sub">Pengaturan sistem reminder untuk semua divisi.</div></div></div>
+      <div className="page-head"><div><h1>Pengaturan</h1><div className="sub">Pengaturan sistem reminder untuk semua unit kerja.</div></div></div>
       {(error || err) && <ErrorBox>{error || err}</ErrorBox>}
       {!loading && (
         <div className="stack">
@@ -60,7 +60,7 @@ export function SettingsPage() {
       {confirmSched !== null && (
         <Confirm title={confirmSched ? 'Nyalakan pengiriman otomatis?' : 'Matikan pengiriman otomatis?'}
           confirmLabel={confirmSched ? 'Nyalakan' : 'Matikan'} danger={!confirmSched}
-          message={confirmSched ? 'Mulai besok pukul 09.00 WIB, sistem baru akan mengirim email dan Telegram ke semua divisi. Pastikan workflow lama sudah dinonaktifkan.' : 'Tidak ada reminder yang akan dikirim sampai dinyalakan lagi.'}
+          message={confirmSched ? 'Mulai besok pukul 09.00 WIB, sistem baru akan mengirim email dan Telegram ke semua unit kerja. Pastikan workflow lama sudah dinonaktifkan.' : 'Tidak ada reminder yang akan dikirim sampai dinyalakan lagi.'}
           onConfirm={() => save('SCHEDULER_ENABLED', String(confirmSched))} onClose={() => setConfirmSched(null)} />
       )}
     </>

@@ -47,7 +47,7 @@ export function UsersPage() {
   return (
     <>
       <div className="page-head">
-        <div className="grow"><h1>Pengguna</h1><div className="sub">Kelola akun login per divisi. Kirim akses lewat menu Broadcast email.</div></div>
+        <div className="grow"><h1>Pengguna</h1><div className="sub">Kelola akun login per unit kerja. Kirim akses lewat menu Broadcast email.</div></div>
         <button className="btn btn-primary" onClick={() => setEditing('new')}><Plus />Pengguna baru</button>
       </div>
       {error && <ErrorBox>{error}</ErrorBox>}
@@ -60,7 +60,7 @@ export function UsersPage() {
         </div>
         <div className="table-wrap">
           <table className="data">
-            <thead><tr><th>Username</th><th>Nama</th><th>Email</th><th>Peran</th><th>Divisi</th><th>Status</th><th>Telegram</th><th>Login terakhir</th><th aria-label="Aksi" /></tr></thead>
+            <thead><tr><th>Username</th><th>Nama</th><th>Email</th><th>Peran</th><th>Unit kerja</th><th>Status</th><th>Telegram</th><th>Login terakhir</th><th aria-label="Aksi" /></tr></thead>
             {loading ? <SkeletonRows cols={9} /> : (
               <tbody>
                 {rows.map(u => (
@@ -88,7 +88,7 @@ export function UsersPage() {
             )}
           </table>
         </div>
-        {!loading && !rows.length && <Empty icon={<UsersIcon />} title={divisions.length ? 'Belum ada pengguna yang cocok. Tambahkan pengguna untuk divisi ini.' : 'Buat divisi dulu sebelum menambah pengguna.'} />}
+        {!loading && !rows.length && <Empty icon={<UsersIcon />} title={divisions.length ? 'Belum ada pengguna yang cocok. Tambahkan pengguna untuk unit kerja ini.' : 'Buat unit kerja dulu sebelum menambah pengguna.'} />}
       </div>
 
       {editing && <UserForm initial={editing === 'new' ? undefined : editing} onClose={() => setEditing(null)}
@@ -137,21 +137,21 @@ function UserForm({ initial, onClose, onSaved }: { initial?: User; onClose: () =
       <button className="btn btn-primary" onClick={save} disabled={busy || !f.username}>{busy ? 'Menyimpan…' : 'Simpan pengguna'}</button>
     </>}>
       <div className="form-grid">
-        <div className="field"><label className="req" htmlFor="uu">Username</label><input id="uu" className="input num" value={f.username} onChange={e => set('username', e.target.value.toLowerCase())} placeholder="nama.divisi" autoComplete="off" /></div>
+        <div className="field"><label className="req" htmlFor="uu">Username</label><input id="uu" className="input num" value={f.username} onChange={e => set('username', e.target.value.toLowerCase())} placeholder="nama.unitkerja" autoComplete="off" /></div>
         <div className="field"><label htmlFor="un">Nama lengkap</label><input id="un" className="input" value={f.fullName} onChange={e => set('fullName', e.target.value)} /></div>
         <div className="field full"><label htmlFor="ue">Email</label><input id="ue" type="email" className="input" value={f.email} onChange={e => set('email', e.target.value)} placeholder="nama@sig.id" />
           <div className="help">Dipakai untuk mengirim akses login lewat Broadcast email.</div></div>
         <div className="field full"><label htmlFor="urm">Email penerima reminder</label><input id="urm" className="input" value={f.reminderEmails} onChange={e => set('reminderEmails', e.target.value)} placeholder="nama@sig.id, nama2@gmail.com" />
-          <div className="help">Pisahkan dengan koma. Ikut menerima semua reminder email divisinya. Pengguna juga bisa mengaturnya sendiri di Profil.</div></div>
+          <div className="help">Pisahkan dengan koma. Ikut menerima semua reminder email unit kerjanya. Pengguna juga bisa mengaturnya sendiri di Profil.</div></div>
         <div className="field"><label className="req" htmlFor="ur">Peran</label>
           <select id="ur" className="select" value={f.role} onChange={e => set('role', e.target.value as Role)}>
-            <option value="USER">User (kelola divisinya sendiri)</option>
-            <option value="SUPERADMIN">Superadmin (semua divisi)</option>
+            <option value="USER">User (kelola unit kerjanya sendiri)</option>
+            <option value="SUPERADMIN">Superadmin (semua unit kerja)</option>
           </select></div>
         {f.role === 'USER' && (
-          <div className="field"><label className="req" htmlFor="ud">Divisi</label>
+          <div className="field"><label className="req" htmlFor="ud">Unit kerja</label>
             <select id="ud" className="select" value={f.divisionId} onChange={e => set('divisionId', e.target.value)}>
-              <option value="">Pilih divisi…</option>
+              <option value="">Pilih unit kerja…</option>
               {divisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select></div>
         )}

@@ -74,7 +74,7 @@ export function BroadcastPage() {
           </div>
           <div className="table-wrap">
             <table className="data">
-              <thead><tr><th style={{ width: 36 }} aria-label="Pilih" /><th>Username</th><th>Nama</th><th>Email</th><th>Divisi</th><th>Status</th><th>Password</th></tr></thead>
+              <thead><tr><th style={{ width: 36 }} aria-label="Pilih" /><th>Username</th><th>Nama</th><th>Email</th><th>Unit kerja</th><th>Status</th><th>Password</th></tr></thead>
               {loading ? <SkeletonRows cols={7} /> : (
                 <tbody>
                   {users.map(u => {
@@ -97,7 +97,7 @@ export function BroadcastPage() {
               )}
             </table>
           </div>
-          {!loading && !users.length && <Empty icon={<Mail />} title="Belum ada pengguna di divisi ini. Tambahkan dulu di menu Pengguna." />}
+          {!loading && !users.length && <Empty icon={<Mail />} title="Belum ada pengguna di unit kerja ini. Tambahkan dulu di menu Pengguna." />}
         </div>
 
         <div className="panel panel-pad stack">
@@ -120,8 +120,8 @@ export function BroadcastPage() {
 
 // ===== Template email broadcast =====
 const DEFAULT_SUBJECT = 'Akses Dashboard Reminder UTSG';
-const DEFAULT_BODY = 'Halo {nama},\n\nberikut akses login Dashboard Reminder UTSG untuk divisi {divisi}.\n\nAlamat: {link}\nUsername: {username}\nPassword: {password}\n\nJangan bagikan password ini kepada siapa pun.';
-const TOKENS: [string, string][] = [['{nama}', 'Nama'], ['{username}', 'Username'], ['{password}', 'Password'], ['{divisi}', 'Divisi'], ['{link}', 'Alamat dashboard']];
+const DEFAULT_BODY = 'Halo {nama},\n\nberikut akses login Dashboard Reminder UTSG untuk unit kerja {unit_kerja}.\n\nAlamat: {link}\nUsername: {username}\nPassword: {password}\n\nJangan bagikan password ini kepada siapa pun.';
+const TOKENS: [string, string][] = [['{nama}', 'Nama'], ['{username}', 'Username'], ['{password}', 'Password'], ['{unit_kerja}', 'Unit kerja'], ['{link}', 'Alamat dashboard']];
 
 type Template = ReturnType<typeof useTemplate>;
 
@@ -156,7 +156,7 @@ function useTemplate() {
 
 /** Ganti placeholder dengan nilai contoh untuk pratinjau */
 function renderTokens(text: string, vals: Record<string, string>, strong: boolean): ReactNode[] {
-  return text.split(/(\{(?:nama|username|password|divisi|link)\})/g).map((part, i) => {
+  return text.split(/(\{(?:nama|username|password|unit_kerja|divisi|link)\})/g).map((part, i) => {
     const key = part.slice(1, -1);
     if (!(part.startsWith('{') && key in vals)) return part;
     if (!strong) return vals[key];
@@ -170,7 +170,7 @@ function EmailEditor({ tpl, mustReset, sample }: { tpl: Template; mustReset: boo
   const ref = useRef<HTMLTextAreaElement>(null);
   const vals = {
     nama: sample?.fullName || sample?.username || 'Budi Santoso', username: sample?.username || 'budi.ict',
-    password: 'Xy7#kP2mQa', divisi: sample?.divisionName || 'ICT', link: window.location.origin,
+    password: 'Xy7#kP2mQa', unit_kerja: sample?.divisionName || 'ICT', divisi: sample?.divisionName || 'ICT', link: window.location.origin,
   };
   const insert = (tok: string) => {
     const el = ref.current;

@@ -13,8 +13,8 @@ import { MultiDatePicker } from '../components/MultiDatePicker';
 export function DivisionSelect({ value, onChange, all = true }: { value: string; onChange: (v: string) => void; all?: boolean }) {
   const { divisions } = useSession();
   return (
-    <select className="select" style={{ width: 'auto', height: 36 }} value={value} onChange={e => onChange(e.target.value)} aria-label="Divisi">
-      {all && <option value="">Semua divisi</option>}
+    <select className="select" style={{ width: 'auto', height: 36 }} value={value} onChange={e => onChange(e.target.value)} aria-label="Unit kerja">
+      {all && <option value="">Semua unit kerja</option>}
       {divisions.map(d => <option key={d.id} value={d.id}>{d.name}{d.isActive ? '' : ' (nonaktif)'}</option>)}
     </select>
   );
@@ -114,7 +114,7 @@ export function RemindersPage({ params }: { params: URLSearchParams }) {
           <table className="data">
             <thead><tr>
               <SortTh k="name">Nama</SortTh>
-              {isSuper && <SortTh k="divisionName">Divisi</SortTh>}
+              {isSuper && <SortTh k="divisionName">Unit kerja</SortTh>}
               <SortTh k="dueDate">Jatuh tempo</SortTh>
               <th>Status</th><th>Pengingat</th><th>Channel</th><th aria-label="Aksi" />
             </tr></thead>
@@ -184,7 +184,7 @@ function Channels({ r }: { r: Reminder }) {
   return (
     <span className="row" style={{ gap: 6, color: 'var(--ink-muted)' }}>
       {r.channelEmail && <span title={`Email: ${r.recipients}`} aria-label="Email"><Mail size={16} /></span>}
-      {r.channelTelegram && <span title={r.divisionHasTelegram ? 'Telegram grup divisi' : 'Telegram — divisi belum punya Chat ID'} aria-label="Telegram" style={{ color: r.divisionHasTelegram ? undefined : 'var(--critical)' }}><Send size={16} /></span>}
+      {r.channelTelegram && <span title={r.divisionHasTelegram ? 'Telegram grup unit kerja' : 'Telegram — unit kerja belum punya Chat ID'} aria-label="Telegram" style={{ color: r.divisionHasTelegram ? undefined : 'var(--critical)' }}><Send size={16} /></span>}
     </span>
   );
 }
@@ -282,7 +282,7 @@ export function ReminderForm({ initial, defaultDivision, onClose, onSaved }: { i
     if (!f.dueDate) return setErr('Tanggal jatuh tempo wajib diisi.');
     if (!f.reminderDays.length) return setErr('Pilih minimal satu hari pengingat.');
     if (!f.channelEmail && !f.channelTelegram) return setErr('Pilih minimal satu channel: Email atau Telegram.');
-    if (isSuper && !f.divisionId) return setErr('Pilih divisi pemilik reminder.');
+    if (isSuper && !f.divisionId) return setErr('Pilih unit kerja pemilik reminder.');
     setBusy(true);
     const payload = {
       name: f.name, category: f.category, provider: f.provider, description: f.description, dueDate: f.dueDate,
@@ -306,9 +306,9 @@ export function ReminderForm({ initial, defaultDivision, onClose, onSaved }: { i
       <div className="form-grid">
         <div className="field full"><label className="req" htmlFor="rn">Nama tugas</label><input id="rn" className="input" value={f.name} onChange={e => set('name', e.target.value)} placeholder="Misal: Perpanjangan lisensi Fortinet" maxLength={200} /></div>
         {isSuper && (
-          <div className="field"><label className="req" htmlFor="rd">Divisi</label>
+          <div className="field"><label className="req" htmlFor="rd">Unit kerja</label>
             <select id="rd" className="select" value={f.divisionId} onChange={e => set('divisionId', e.target.value)}>
-              <option value="">Pilih divisi…</option>
+              <option value="">Pilih unit kerja…</option>
               {divisions.filter(d => d.isActive).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
           </div>
@@ -343,8 +343,8 @@ export function ReminderForm({ initial, defaultDivision, onClose, onSaved }: { i
             <div className="help">Pisahkan beberapa alamat dengan koma.</div>
           </div>
         )}
-        <label className="check"><input type="checkbox" checked={f.channelTelegram} onChange={e => set('channelTelegram', e.target.checked)} />Telegram grup divisi</label>
-        {f.channelTelegram && div && !div.hasTelegram && <div className="alert alert-warn">Divisi {div.name} belum punya Telegram Chat ID, jadi pesan Telegram belum bisa dikirim. Minta superadmin mengisinya di menu Divisi.</div>}
+        <label className="check"><input type="checkbox" checked={f.channelTelegram} onChange={e => set('channelTelegram', e.target.checked)} />Telegram grup unit kerja</label>
+        {f.channelTelegram && div && !div.hasTelegram && <div className="alert alert-warn">Unit kerja {div.name} belum punya Telegram Chat ID, jadi pesan Telegram belum bisa dikirim. Minta superadmin mengisinya di menu Unit Kerja.</div>}
       </div>
 
       <div className="group">
@@ -368,7 +368,7 @@ export function ReminderForm({ initial, defaultDivision, onClose, onSaved }: { i
 
 // ===== Riwayat versi (soft update) =====
 const FIELDS: [keyof Reminder, string, (v: unknown) => string][] = [
-  ['name', 'Nama', v => String(v || '—')], ['divisionName', 'Divisi', v => String(v || '—')], ['category', 'Kategori', v => String(v || '—')],
+  ['name', 'Nama', v => String(v || '—')], ['divisionName', 'Unit kerja', v => String(v || '—')], ['category', 'Kategori', v => String(v || '—')],
   ['provider', 'Provider', v => String(v || '—')], ['dueDate', 'Jatuh tempo', v => fmtDate(v as string)],
   ['reminderDays', 'Hari pengingat', v => (v as number[]).map(d => (d === 0 ? 'H' : `H-${d}`)).join(', ')],
   ['status', 'Status', v => ({ ACTIVE: 'Aktif', PAUSED: 'Dijeda', COMPLETED: 'Selesai' }[v as string] || String(v))],
